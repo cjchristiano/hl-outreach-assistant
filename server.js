@@ -78,7 +78,23 @@ app.post('/api/generate', async (req, res) => {
     }
 
     const data = await response.json();
-    const raw = (data.content && data.content[0] && data.content[0].text) || '';
+
+    // Pull text from EVERY text-type content block and join them, rather than
+    // assuming the text is in content[0]. Sonnet-tier models can return content
+    // arrays where slot 0 isn't the text block, which was silently producing an
+    // empty string before and made the whole response look blank.
+    const raw = Array.isArray(data.content)
+      ? data.content
+          .filter((block) => block && block.type === 'text' && typeof block.text === 'string')
+          .map((block) => block.text)
+          .join('\n')
+          .trim()
+      : '';
+
+    if (!raw) {
+      console.error('Empty text extracted from Anthropic response:', JSON.stringify(data));
+      return res.status(502).json({ error: 'The AI returned an empty response. Try again.' });
+    }
 
     // Plain text protocol, not JSON, on purpose: JSON output was repeatedly leaking
     // literal braces and escaped newlines into what the user saw. Regex extraction
