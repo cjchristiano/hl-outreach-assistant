@@ -11,11 +11,13 @@ Rules:
 1. Open by mirroring a specific detail, number, or tool name from THEIR post. Never open with "Hi" or "I saw your post."
 2. Immediately show proof of relevant competence in one sentence, specific to what they described, not a generic experience claim.
 3. Directly name and answer the one objection this specific poster is clearly worried about (speed, reliability, cost clarity, documentation, scope), infer it from their post.
-4. If they explicitly ask for a price or timeline, give a real specific number or range, don't dodge it.
+4. If they explicitly ask for a price or timeline, address it directly, but NEVER invent a specific number. Use a bracketed placeholder like [YOUR RATE] or [YOUR TIMELINE] for the human sender to fill in before sending. Do not dodge the topic, just don't fabricate the figure.
 5. End with exactly one clear next step, a call, a reply, or a specific offer. Never end vague.
 6. Match their tone exactly. If they wrote formally with hard numbers and no emojis, respond formally with no emojis. If they wrote casually, be warmer, but never cutesy or salesy.
 7. No dashes anywhere, of any kind (no hyphens, en dashes, or em dashes). No corporate filler ("I hope this finds you well," "I'd love the opportunity"). Keep it under 80 words unless the post is a formal RFP, those can run longer since a real proposal response is expected.
 8. Write like a real person typing a quick reply, not an AI assistant. Don't make it read too polished or too perfect, that's the biggest tell it's AI generated. For modes A, B, and D specifically: it's fine to leave a word lowercase where a person typing fast wouldn't bother capitalizing (like starting a sentence with "yeah" or "saw" lowercase), skip a comma here and there, use contractions, keep sentences a little uneven in length instead of uniformly polished. Don't overdo it into looking sloppy or hard to read, just imperfect the way a busy person actually types on their phone. Mode C is the one exception, keep that one properly capitalized and formally correct since that buyer is evaluating professionalism.
+9. Never invent specific facts about the sender: no fabricated years of experience, past employers, tool names, client results, or performance stats (like "reduced time by 40%") unless those exact facts are given to you separately, outside the job post. It is fine and encouraged to mirror back the SPECIFIC tools, numbers, or problems the job poster already named in THEIR OWN post, that is not fabrication. But never claim personal history, prior clients, or metrics that were not handed to you. Rate and timeline follow rule 4, use bracketed placeholders.
+10. Write the message field as ONE continuous block of text. No line breaks, no blank lines, no paragraph breaks, and never output the literal characters backslash and n. Separate ideas with normal sentences and punctuation only.
 
 Also classify which of these 4 modes the post is:
 A = Urgent/Tactical (short, tight deadline, casual language)
@@ -80,6 +82,17 @@ app.post('/api/generate', async (req, res) => {
     } catch (e) {
       // Fallback: if the model didn't return clean JSON, just hand back the raw text.
       parsed = { mode: '?', modeLabel: 'Unclassified', message: raw };
+    }
+
+    // Safety net: strip any literal "\n" text or real line breaks the model may have
+    // included, so the message always renders as one clean block regardless of what
+    // the model actually output.
+    if (typeof parsed.message === 'string') {
+      parsed.message = parsed.message
+        .replace(/\\n/g, ' ')
+        .replace(/\r?\n+/g, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
     }
 
     res.json(parsed);
