@@ -1,0 +1,16 @@
+{
+  "name": "hl-outreach-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Paste a HighLevel job board posting, get a scroll-stopping outreach message back.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
